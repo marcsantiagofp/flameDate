@@ -1,0 +1,36 @@
+{% extends 'Base.html' %}
+
+{% block title %}Login - FlameDate{% endblock %}
+
+{% block content %}
+<div class="container-fluid background d-flex justify-content-center align-items-center vh-100">
+    <div class="d-flex box rounded-4 overflow-hidden">
+
+        <!-- Panel Izquierdo -->
+        <div class="left-panel d-none d-md-flex flex-column justify-content-center px-5">
+            <p class="left-text">
+                Empieza a<br>
+                buscar quién<br>
+                encienda tú<br>
+                chispa...
+            </p>
+        </div>
+
+        <!-- Panel Derecho -->
+        <div class="right-panel p-5 d-flex flex-column justify-content-center text-center">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" class="brand-logo mx-auto mb-4"/>
+            <h1 class="fw-bold text-white mb-4 brand-title">FLAMEDATE</h1>
+
+            <form method="POST" action="{{ url_for('login') }}">
+                {{ form.hidden_tag() }}
+                <input type="text" name="username" class="form-control form-control-lg mb-3" placeholder="Usuario" required>
+                <input type="password" name="password" class="form-control form-control-lg mb-4" placeholder="Contraseña" required>
+                <button type="submit" class="btn btn-danger w-100 py-2 rounded-pill fw-semibold">Iniciar Sesión</button>
+            </form>
+
+            <p class="divider my-3 text-white"><span>OR</span></p>
+            <p class="text-white">¿No tienes una cuenta? <a href="{{ url_for('register') }}" class="fw-bold text-white text-decoration-underline">Regístrate</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

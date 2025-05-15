@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ super() }} - Parking - SmartParking Bernat
+{% endblock %}
+
+{% block content %}
+<div class="container mt-2">
+    <!-- Leyenda (solo una vez) -->
+    <div class="legend d-flex justify-content-center mt-2 mb-4" style="margin-right: 440px;">
+        <div class="legend-item d-flex align-items-center me-3">
+            <div class="legend-box" style="background-color: #4caf50;"></div>
+            <span>Plaza Libre</span>
+        </div>
+        <div class="legend-item d-flex align-items-center me-3">
+            <div class="legend-box" style="background-color: #e74c3c;"></div>
+            <span>Plaza Ocupada</span>
+        </div>
+        <div class="legend-item d-flex align-items-center">
+            <div class="legend-box" style="background-color: #3578e5;"></div>
+            <span>Plaza Reservada</span>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for parking_id, parking in parkings.items() %}
+            <div class="col-md-6">
+                <h3 class="fw-bold text-black">{{ parking['title'] }}</h3>
+                <div class="parking-layout bg-dark p-3 d-flex flex-column align-items-center" 
+                     id="parkingMap{{ parking_id }}" 
+                     data-slots='{{ parking["slots"] | tojson | safe }}'>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="parking-info text-black">
+                    <h5 class="fw-bold text-black">{{ parking['infoTitle'] }}</h5>
+                    <p class="status free-text">PLAZAS DISPONIBLES: <span id="freeSpots{{ parking_id }}">{{ parking['free'] }}</span></p>
+                    <p class="status occupied-text">PLAZAS OCUPADAS: <span id="occupiedSpots{{ parking_id }}">{{ parking['occupied'] }}</span></p>
+                    <p class="status reserved-text">PLAZAS RESERVADAS: <span id="reservedSpots{{ parking_id }}">{{ parking['reserved'] }}</span></p>
+                    <h5 class="fw-bold mt-3">RESERVAR PLAZA PARKING</h5>
+                    <div class="form-group">
+                        <label for="nombre">Nombre</label>
+                        <input type="text" id="nombre" class="form-control" value="{{ user.username }}" readonly>
+                    </div>
+                    <form class="reserva-form" id="reservaForm{{ parking_id }}" method="POST">
+                        <div class="form-group">
+                            <label for="plaza{{ parking_id }}">Selecciona una plaza</label>
+                            <select id="plaza{{ parking_id }}" name="plaza_id" class="form-select">
+                                <option selected>Selecciona una plaza libre en el mapa</option>
+                                {% for slot in parking['slots'] %}
+                                    {% if slot['status'] == 'libre' %}
+                                        <option value="{{ slot['id'] }}">Plaza {{ slot['id'] }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn primary-btn mb-5">RESERVAR</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("[id^='parkingMap']").forEach(parkingMap => {
+            const slots = JSON.parse(parkingMap.getAttribute("data-slots"));
+
+            const row1 = document.createElement("div");
+            row1.classList.add("parking-row");
+
+            const row2 = document.createElement("div");
+            row2.classList.add("parking-row");
+
+            slots.forEach((slot, index) => {
+                const slotDiv = document.createElement("div");
+                slotDiv.classList.add("parking-slot");
+
+                if (slot['status'] === 'libre') {
+                    slotDiv.style.backgroundColor = "#4caf50";
+                } else if (slot['status'] === 'ocupada') {
+                    slotDiv.style.backgroundColor = "#e74c3c";
+                } else if (slot['status'] === 'reservada') {
+                    slotDiv.style.backgroundColor = "#3578e5";
+                }
+
+                slotDiv.textContent = slot['id'];
+
+                if (index < 8) {
+                    row1.appendChild(slotDiv);
+                } else {
+                    row2.appendChild(slotDiv);
+                }
+            });
+
+            parkingMap.appendChild(row1);
+            parkingMap.appendChild(row2);
+        });
+    });
+</script>
+
+{% endblock %}

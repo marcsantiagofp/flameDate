@@ -1,0 +1,37 @@
+{% extends 'Base.html' %}
+
+{% block title %}Signup - FlameDate{% endblock %}
+
+{% block content %}
+<div class="container-fluid background d-flex justify-content-center align-items-center vh-100">
+    <div class="d-flex box rounded-4 overflow-hidden">
+
+        <!-- Panel de Registro (formulario) -->
+        <div class="col-md-6 right-panel d-flex flex-column align-items-center justify-content-center p-5">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" class="brand-logo mb-3"/>
+            <h1 class="brand-title text-white mb-4">FLAMEDATE</h1>
+            <form method="POST" action="{{ url_for('register') }}">
+                {{ register_form.hidden_tag() }}
+                <input type="text" name="username" class="form-control my-2" placeholder="Nombre de usuario" required>
+                <input type="email" name="email" class="form-control my-2" placeholder="Correo electrónico" required>
+                <input type="password" name="password" class="form-control my-2" placeholder="Contraseña" required>
+                <input type="password" name="confirm_password" class="form-control my-2" placeholder="Repetir contraseña" required>
+                <button type="submit" class="btn btn-danger w-100 rounded-pill my-3">Registrarse</button>
+            </form>
+            <p class="divider my-3 text-white"><span>OR</span></p>
+            <p class="register-link">¿Ya tienes una cuenta? <a href="{{ url_for('login') }}" class="fw-bold text-danger text-white text-decoration-underline">Inicia sesión</a></p>
+        </div>
+
+        <!-- Panel Visual a la derecha -->
+        <div class="col-md-6 left-panel2 d-none d-md-flex flex-column justify-content-center px-5">
+            <p class="left-text">
+                Empieza a<br>
+                buscar quién<br>
+                encienda tú<br>
+                chispa...
+            </p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
