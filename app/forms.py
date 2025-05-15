@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, EmailField, SelectField
-from wtforms.validators import DataRequired, Length, EqualTo, Email
+from wtforms import StringField, PasswordField, SubmitField, EmailField, SelectField, IntegerField, RadioField
+from wtforms.validators import DataRequired, Length, EqualTo, Email, Optional
 
 # Formulario de login
 class LoginForm(FlaskForm):
@@ -15,6 +15,20 @@ class RegisterForm(FlaskForm):
     password = PasswordField('Contraseña', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('Repetir contraseña', validators=[DataRequired(), EqualTo('password', message='Las contraseñas deben coincidir.')])
     submit = SubmitField('Registrarse')
+
+# Formulario para actualizar el perfil de usuario (FlameDate)
+class UpdatePerfilForm(FlaskForm):
+    username = StringField('Nombre', validators=[DataRequired()])
+    edad = IntegerField('Edad', validators=[Optional()])
+    intereses = SelectField('Intereses', choices=[('Mujeres', 'Mujeres'), ('Hombres', 'Hombres'), ('Ambos', 'Ambos')], validators=[Optional()])
+    identidad = SelectField('Identidad', choices=[('Heterosexual', 'Heterosexual'), ('Homosexual', 'Homosexual'), ('Bisexual', 'Bisexual'), ('Otro', 'Otro')], validators=[Optional()])
+    busca = RadioField('Busco', choices=[
+        ('red', '😍 RELACIÓN ESTABLE'),
+        ('yellow', '😅 ROLLOS CORTOS'),
+        ('blue', '🤝 HACER AMIGOS'),
+        ('sparkle', '✨ LO QUE SURJA')
+    ], validators=[Optional()])
+    submit = SubmitField('Actualizar')
 
 class UpdateUserForm(FlaskForm):
     nombre = StringField('Nombre', validators=[DataRequired()])

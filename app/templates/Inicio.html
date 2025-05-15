@@ -9,9 +9,7 @@
   <!-- Sidebar -->
   <div class="sidebar d-flex flex-column p-3 text-white">
     <div class="d-flex align-items-center justify-content-between mb-3">
-      {# <a href="{{ url_for('perfil') }}"> #}
-      <!-- Enlace a perfil comentado porque no existe el endpoint -->
-      <a href="#">
+      <a href="{{ url_for('perfil') }}">
         <img src="{{ url_for('static', filename='images/perfil.svg') }}" class="profile-thumb rounded-circle" alt="Perfil"/>
       </a>
       <img src="{{ url_for('static', filename='images/config.svg') }}" alt="Configurar" class="config-icon" id="toggleConfig"/>
@@ -21,11 +19,7 @@
     <div class="sidebar-divider mb-3"></div>
 
     <div class="tabs d-flex w-100 mb-3">
-      {# <a href="{{ url_for('swipes') }}" class="text-white text-decoration-none active-tab tab-item text-center">FLAMES</a> #}
-      <!-- Enlace a swipes comentado porque no existe el endpoint -->
       <a href="#" class="text-white text-decoration-none active-tab tab-item text-center">FLAMES</a>
-      {# <a href="{{ url_for('chats') }}" class="text-white text-decoration-none inactive-tab tab-item text-center">MENSAJES</a> #}
-      <!-- Enlace a chats comentado porque no existe el endpoint -->
       <a href="#" class="text-white text-decoration-none inactive-tab tab-item text-center">MENSAJES</a>
     </div>
 

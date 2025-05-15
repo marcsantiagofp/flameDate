@@ -182,3 +182,73 @@ def register_routes(app):
         session.pop('username', None)
         flash("Tu cuenta ha sido eliminada correctamente.")
         return redirect(url_for('index'))
+
+    # Ruta para ver y actualizar el perfil del usuario (FlameDate)
+    @app.route('/perfil', methods=['GET', 'POST'])
+    def perfil():
+        if 'username' not in session:
+            flash("Debes iniciar sesión para acceder a esta página.")
+            return redirect(url_for('login'))
+        user = User.query.filter_by(username=session['username']).first()
+        if not user:
+            flash("Usuario no encontrado.")
+            return redirect(url_for('login'))
+
+        if request.method == 'POST':
+            username = request.form.get('username')
+            edad = request.form.get('edad')
+            intereses = request.form.get('intereses')
+            identidad = request.form.get('identidad')
+            busca = request.form.get('busca')
+
+            # Actualiza nombre de usuario
+            if username:
+                user.username = username
+
+            # Actualiza edad
+            if edad:
+                try:
+                    user.age = int(edad)
+                except ValueError:
+                    pass
+
+            # Actualiza preferencias (intereses)
+            if intereses:
+                # El modelo espera 'preference' como 'male', 'female', 'both'
+                if intereses == 'Mujeres':
+                    user.preference = 'female'
+                elif intereses == 'Hombres':
+                    user.preference = 'male'
+                elif intereses == 'Ambos':
+                    user.preference = 'both'
+
+            # Actualiza identidad (gender)
+            if identidad:
+                # El modelo espera 'gender' como 'male', 'female', 'other'
+                if identidad == 'Heterosexual':
+                    user.gender = 'male'
+                elif identidad == 'Homosexual':
+                    user.gender = 'female'
+                elif identidad == 'Bisexual':
+                    user.gender = 'other'
+                elif identidad == 'Otro':
+                    user.gender = 'other'
+
+            # Actualiza bio con lo que busca
+            if busca:
+                # Puedes guardar el valor de busca en bio o crear un campo específico
+                # Aquí lo guardamos en bio como ejemplo
+                if busca == 'red':
+                    user.bio = '😍 RELACIÓN ESTABLE'
+                elif busca == 'yellow':
+                    user.bio = '😅 ROLLOS CORTOS'
+                elif busca == 'blue':
+                    user.bio = '🤝 HACER AMIGOS'
+                elif busca == 'sparkle':
+                    user.bio = '✨ LO QUE SURJA'
+
+            db.session.commit()
+            flash("Perfil actualizado correctamente.")
+            session['username'] = user.username
+
+        return render_template('Perfil.html', user=user)

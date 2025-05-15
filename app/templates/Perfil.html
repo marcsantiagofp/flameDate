@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    FlameDate - Perfil
+{% endblock %}
+
+{% block content %}
+<div class="swipes-page d-flex">
+  <!-- Sidebar -->
+  <div class="sidebar d-flex flex-column align-items-center p-4 text-white">
+    <div class="w-100 d-flex justify-content-start">
+      <a href="{{ url_for('inicio') }}" class="back-arrow mb-4">
+        <img src="{{ url_for('static', filename='images/arrow-back.png') }}" alt="Volver"/>
+      </a>
+    </div>
+    <img src="{{ url_for('static', filename='images/perfil.svg') }}" class="profile-avatar mb-3 rounded-circle" alt="Usuario"/>
+    <h2 class="profile-name">{{ user.username }}, {{ user.age if user.age else '' }}</h2>
+    <p class="profile-status">{{ user.bio if user.bio else '✨ LO QUE SURJA' }}</p>
+    {# <a href="{{ url_for('login') }}" class="btn btn-logout mt-3">Cerrar Sesión</a> #}
+    <!-- Enlace a login comentado porque no existe el endpoint -->
+    <a href="{{ url_for('logout') }}" class="btn btn-logout mt-3">Cerrar Sesión</a>
+  </div>
+
+  <!-- Panel principal -->
+  <div class="profile-settings text-white p-4 flex-grow-1">
+    <form method="POST" action="{{ url_for('perfil') }}">
+      <div class="header d-flex align-items-center gap-3 mb-4">
+          <img src="{{ url_for('static', filename='images/logo.svg') }}" class="logo-icon" alt="Logo"/>
+          <h1 class="logo-text mb-0">FLAMEDATE</h1>
+      </div>
+      <h3 class="section-title">CONFIGURACIÓN</h3>
+
+      <!-- Editar fotos -->
+      <div class="photo-gallery d-flex gap-3 my-4">
+        <img src="{{ url_for('static', filename='images/perfil.svg') }}" class="photo-thumb rounded"/>
+        <img src="{{ url_for('static', filename='images/perfil2.png') }}" class="photo-thumb rounded"/>
+        <img src="{{ url_for('static', filename='images/perfil3.png') }}" class="photo-thumb rounded"/>
+        <div class="photo-thumb add-photo d-flex align-items-center justify-content-center rounded">
+          <span class="plus-icon">+</span>
+        </div>
+      </div>
+
+      <!-- Agrupar todas las secciones horizontalmente -->
+      <div class="d-flex flex-wrap align-items-end gap-4 mb-4">
+        <!-- Información personal -->
+        <div class="info-section">
+          <h5 class="mb-3">INFORMACIÓN PERSONAL</h5>
+          <input type="text" name="username" class="form-input me-2" placeholder="Nombre" value="{{ user.username }}"/>
+          <input type="number" name="edad" class="form-input" placeholder="Edad" value="{{ user.age if user.age else '' }}"/>
+        </div>
+
+        <!-- Intereses -->
+        <div class="info-section">
+          <h5 class="mb-3">INTERESES</h5>
+          <select name="intereses" class="form-select custom-select w-auto d-inline-block me-2">
+            <option value="Mujeres" {% if user.preference == 'female' %}selected{% endif %}>Mujeres</option>
+            <option value="Hombres" {% if user.preference == 'male' %}selected{% endif %}>Hombres</option>
+            <option value="Ambos" {% if user.preference == 'both' %}selected{% endif %}>Ambos</option>
+          </select>
+        </div>
+
+        <!-- Identidad -->
+        <div class="info-section">
+          <h5 class="mb-3">ME IDENTIFICO</h5>
+          <select name="identidad" class="form-select custom-select w-auto d-inline-block">
+            <option value="Heterosexual" {% if user.gender == 'male' %}selected{% endif %}>Heterosexual</option>
+            <option value="Homosexual" {% if user.gender == 'female' %}selected{% endif %}>Homosexual</option>
+            <option value="Bisexual" {% if user.gender == 'other' %}selected{% endif %}>Bisexual</option>
+            <option value="Otro" {% if user.gender == 'other' %}selected{% endif %}>Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Qué buscas -->
+      <div class="info-section">
+        <h5 class="mb-3">BUSCO...</h5>
+        <div class="dot-selector">
+          <input type="radio" id="dot-red" name="busca" value="red" hidden {% if user.bio == '😍 RELACIÓN ESTABLE' %}checked{% endif %}>
+          <label for="dot-red" class="dot-option">
+              <span class="dot red"></span> 😍 RELACIÓN ESTABLE
+          </label>
+          <input type="radio" id="dot-yellow" name="busca" value="yellow" hidden {% if user.bio == '😅 ROLLOS CORTOS' %}checked{% endif %}>
+          <label for="dot-yellow" class="dot-option">
+              <span class="dot yellow"></span> 😅 ROLLOS CORTOS
+          </label>
+          <input type="radio" id="dot-blue" name="busca" value="blue" hidden {% if user.bio == '🤝 HACER AMIGOS' %}checked{% endif %}>
+          <label for="dot-blue" class="dot-option">
+              <span class="dot blue"></span> 🤝 HACER AMIGOS
+          </label>
+          <input type="radio" id="dot-sparkle" name="busca" value="sparkle" hidden {% if user.bio == '✨ LO QUE SURJA' or not user.bio %}checked{% endif %}>
+          <label for="dot-sparkle" class="dot-option">
+              <span class="dot sparkle"></span> ✨ LO QUE SURJA
+          </label>
+        </div>
+      </div>
+
+      <!-- Botón para actualizar -->
+      <div class="text-end mt-4">
+        <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-semibold">Actualizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

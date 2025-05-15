@@ -6,7 +6,6 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
-    telefono = db.Column(db.String(20), nullable=True)
     password = db.Column(db.String(255), nullable=False)
     age = db.Column(db.Integer, nullable=True)
     gender = db.Column(db.Enum('male', 'female', 'other'), nullable=True)
