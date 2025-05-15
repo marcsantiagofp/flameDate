@@ -1,5 +1,7 @@
+import os
 from flask import Flask, request, make_response, redirect, render_template, session, flash, url_for, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 from .forms import LoginForm, RegisterForm
 from .models import User
 from . import db
@@ -164,6 +166,16 @@ def register_routes(app):
                     user.bio = '🤝 HACER AMIGOS'
                 elif busca == 'sparkle':
                     user.bio = '✨ LO QUE SURJA'
+
+            # Guardar imagen de perfil
+            file = request.files.get('profile_pic')
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                upload_folder = os.path.join(app.root_path, 'static', 'uploads')
+                os.makedirs(upload_folder, exist_ok=True)
+                upload_path = os.path.join(upload_folder, filename)
+                file.save(upload_path)
+                user.profile_pic = f'uploads/{filename}'
 
             db.session.commit()
             flash("Perfil actualizado correctamente.")
