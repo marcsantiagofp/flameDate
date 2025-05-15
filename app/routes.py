@@ -11,6 +11,14 @@ def register_routes(app):
     @app.route('/', methods=['GET', 'POST'])
     def index():
         return redirect(url_for('login'))
+    
+    @app.route('/inicio')
+    def inicio():
+        if 'username' not in session:
+            flash("Debes iniciar sesión para acceder a esta página.")
+            return redirect(url_for('login'))
+        user = User.query.filter_by(username=session['username']).first()
+        return render_template('Inicio.html', user=user)
 
     # USUARIOS 
     # Ruta para la página de registro
@@ -49,21 +57,24 @@ def register_routes(app):
     # Ruta para la página de login
     @app.route('/login', methods=['GET', 'POST'])
     def login():
-        form = LoginForm()  # Crear el formulario aquí
+        form = LoginForm()
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
 
-        if form.validate_on_submit():  # Si el formulario es válido
-            username = form.username.data
-            password = form.password.data
+            if not username or not password:
+                flash('Todos los campos son obligatorios.')
+                return render_template('Inicio_Sesion.html', form=form)
 
             user = User.query.filter_by(username=username).first()
             if user and check_password_hash(user.password, password):
                 session['username'] = username
                 flash('Inicio de sesión exitoso!')
-                return redirect(url_for('index'))  # Redirigir a la página principal
+                return redirect(url_for('inicio'))
             else:
                 flash('Nombre de usuario o contraseña incorrectos.')
 
-        return render_template('Inicio_Sesion.html', form=form)  # Pasar el formulario a la plantilla
+        return render_template('Inicio_Sesion.html', form=form)
 
     # Cerrar session
     @app.route('/logout')
@@ -171,151 +182,3 @@ def register_routes(app):
         session.pop('username', None)
         flash("Tu cuenta ha sido eliminada correctamente.")
         return redirect(url_for('index'))
-
-
-    # PAGINA PARKINGS
-    @app.route('/parkings', methods=['GET', 'POST'])
-    def parkings():
-        if 'username' not in session:
-            flash("Debes iniciar sesión para acceder a esta página.")
-            return redirect(url_for('login'))  
-
-        user = User.query.filter_by(username=session['username']).first()
-        if not user:
-            flash("Usuario no encontrado.")
-            return redirect(url_for('login'))
-
-        # Obtener todos los parkings
-        parkings = Parking.query.all()
-        parking_data = {}
-
-        for parking in parkings:
-            parking_data[parking.id] = {
-                "title": f"Mapa del {parking.nombre}",
-                "infoTitle": parking.nombre,
-                "free": 0,
-                "occupied": 0,
-                "reserved": 0,
-                "slots": []
-            }
-
-            plazas = Plaza.query.filter_by(parking_id=parking.id).all()
-            
-            for plaza in plazas:
-                plaza_data = {
-                    "id": plaza.id,
-                    "status": plaza.estado
-                }
-
-                if plaza.estado == 'libre':
-                    parking_data[parking.id]["free"] += 1
-                elif plaza.estado == 'ocupada':
-                    parking_data[parking.id]["occupied"] += 1
-                elif plaza.estado == 'reservada':
-                    parking_data[parking.id]["reserved"] += 1
-
-                parking_data[parking.id]["slots"].append(plaza_data)
-
-        # 🛠️ Depuración: Imprimir los datos recogidos en la terminal
-        print("🚗 Datos de parkings y plazas:", parking_data)
-
-        # Procesar la reserva de plaza
-        if request.method == 'POST':
-            plaza_id = request.form.get('plaza_id')
-            print("📍 ID de plaza seleccionada:", plaza_id)
-
-            plaza = Plaza.query.filter_by(id=plaza_id).first()
-            print("ℹ️ Plaza encontrada en BD:", plaza)
-
-            if plaza and plaza.estado == 'libre':
-                plaza.estado = 'reservada'
-                plaza.user_id = user.id  # Asociamos la plaza al usuario
-                db.session.commit()
-                flash("Plaza reservada correctamente.")
-                print(f"✅ Plaza {plaza_id} reservada para el usuario {user.username}")
-                return redirect(url_for('parkings'))  # 🔄 Redirige para recargar la página
-            else:
-                flash("La plaza no está disponible para la reserva.")
-                print("❌ La plaza no estaba disponible.")
-
-        # Pasar los datos a la plantilla
-        context = {
-            'user': user,
-            'parkings': parking_data
-        }
-        return render_template("Parking.html", **context)
-
-
-    # ESP 32
-    @app.route('/api/entrada', methods=['POST'])
-    def entrada():
-        data = request.get_json(force=True)
-        matricula = data.get('matricula')
-        
-        vehiculo = Vehiculo.query.filter_by(matricula=matricula).first()
-        if not vehiculo:
-            return jsonify({'error': 'Matrícula no encontrada'}), 403
-
-        plazaLibre = Plaza.query.filter_by(estado='libre').first()
-        if plazaLibre:
-            nuevo_log = Log(matricula=matricula, fecha_entrada=datetime.now())
-            db.session.add(nuevo_log)
-            
-            plazaLibre.estado = 'ocupada'
-            plazaLibre.user_id = vehiculo.user_id
-            db.session.commit()
-            
-            return jsonify({
-                "message": "Entrada registrada, Bienvenido",
-                "matricula": matricula
-            }), 200
-        else:
-            return jsonify({'error': 'No hay plazas disponibles'}), 409
-
-    @app.route('/api/actualizaSpot', methods=['POST'])
-    def actualizaSpot():
-        data = request.get_json(force=True)
-        plaza_id = data.get('plazaId')
-        estado = data.get('estado')
-        
-        plaza = Plaza.query.filter_by(id=plaza_id).first()
-        if not plaza:
-            return jsonify({'error': 'Plaza no encontrada'}), 404
-        
-        plaza.estado = estado
-        if estado == 'libre':
-            plaza.user_id = None
-
-        db.session.commit()
-        return jsonify({
-            'message': 'Plaza actualizada',
-            'plazaId': plaza_id,
-            'estado': estado
-        }), 200
-
-    @app.route('/api/salida', methods=['POST'])
-    def salida():
-        data = request.get_json(force=True)
-        matricula = data.get('matricula')
-        
-        vehiculo = Vehiculo.query.filter_by(matricula=matricula).first()
-        if not vehiculo:
-            return jsonify({'error': 'Matrícula no encontrada'}), 403
-        
-        log = Log.query.filter_by(matricula=matricula, fecha_salida=None).first()
-        if not log:
-            return jsonify({'error': 'No hay registro de entrada para esta matrícula'}), 404
-        
-        log.fecha_salida = datetime.now()
-        
-        plaza = Plaza.query.filter_by(user_id=vehiculo.user_id, estado='ocupada').first()
-        if plaza:
-            plaza.estado = 'libre'
-            plaza.user_id = None
-        
-        db.session.commit()
-        return jsonify({
-            "message": "Salida registrada, hasta luego",
-            "matricula": matricula,
-            "hora_salida": log.fecha_salida.strftime('%Y-%m-%d %H:%M:%S')
-        }), 200
