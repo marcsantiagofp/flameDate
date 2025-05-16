@@ -66,25 +66,27 @@
   <div class="main-content d-flex align-items-center justify-content-center flex-grow-1">
     <div class="profile-card position-relative">
       <div class="image-carousel">
-        <img src="{{ url_for('static', filename='images/perfil.svg') }}" class="card-img active" alt="Foto 1"/>
-        <img src="{{ url_for('static', filename='images/perfil2.png') }}" class="card-img" alt="Foto 2"/>
-        <img src="{{ url_for('static', filename='images/perfil3.png') }}" class="card-img" alt="Foto 3"/>
+        <img src="{{ url_for('static', filename=user.profile_pic) if user.profile_pic else url_for('static', filename='images/perfil.svg') }}" class="card-img active" alt="Foto perfil"/>
+        <!-- Si quieres más imágenes, puedes añadirlas aquí -->
         <!-- Flechas invisibles a izquierda y derecha -->
         <div class="click-zone left-zone"></div>
         <div class="click-zone right-zone"></div>
         <div class="image-indicators">
           <div class="indicator active"></div>
-          <div class="indicator"></div>
-          <div class="indicator"></div>
         </div>
       </div>
       <div class="card-info">
         <div class="d-flex justify-content-between w-100">
           <div>
-            <h2 class="name-age mb-0">MARC <span class="age">20</span></h2>
-            <p class="distance mb-0">a 1 km de distancia...</p>
+            <h2 class="name-age mb-0">
+              {{ user.username }}
+              {% if user.age %}<span class="age">{{ user.age }}</span>{% endif %}
+            </h2>
+            <p class="distance mb-0">
+              {% if user.preference == 'female' %}Prefiere: Mujeres{% elif user.preference == 'male' %}Prefiere: Hombres{% elif user.preference == 'both' %}Prefiere: Ambos{% endif %}
+            </p>
           </div>
-          <div class="description text-end">✨ LO QUE SURJA</div>
+          <div class="description text-end">{{ user.bio if user.bio else '✨ LO QUE SURJA' }}</div>
         </div>
         <div class="card-actions d-flex justify-content-center gap-4 mt-3">
           <button class="btn btn-light rounded-circle icon-btn" aria-label="Nope">
