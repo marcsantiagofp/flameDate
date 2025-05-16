@@ -10,7 +10,7 @@
   <div class="sidebar d-flex flex-column p-3 text-white">
     <div class="d-flex align-items-center justify-content-between mb-3">
       <a href="{{ url_for('perfil') }}">
-        <img src="{{ url_for('static', filename='images/perfil.svg') }}" class="profile-thumb rounded-circle" alt="Perfil"/>
+        <img src="{{ url_for('static', filename=user.profile_pic) if user.profile_pic else url_for('static', filename='images/perfil.svg') }}" class="profile-thumb rounded-circle" alt="Perfil"/>
       </a>
       <img src="{{ url_for('static', filename='images/config.svg') }}" alt="Configurar" class="config-icon" id="toggleConfig"/>
     </div>
