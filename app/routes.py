@@ -182,3 +182,28 @@ def register_routes(app):
             session['username'] = user.username
 
         return render_template('Perfil.html', user=user)
+
+    # Ruta para mostrar la configuración del usuario (configuración de búsqueda)
+    @app.route('/config', methods=['GET', 'POST'])
+    def config():
+        if 'username' not in session:
+            flash("Debes iniciar sesión para acceder a esta página.")
+            return redirect(url_for('login'))
+        user = User.query.filter_by(username=session['username']).first()
+        if not user:
+            flash("Usuario no encontrado.")
+            return redirect(url_for('login'))
+
+        # Aquí puedes manejar POST si quieres guardar preferencias de búsqueda
+        if request.method == 'POST':
+            # Ejemplo: guardar distancia y rango de edad si los añades al modelo
+            distancia = request.form.get('distanceRange')
+            min_edad = request.form.get('minAge')
+            max_edad = request.form.get('maxAge')
+            # user.distancia = distancia
+            # user.min_edad = min_edad
+            # user.max_edad = max_edad
+            # db.session.commit()
+            flash("Configuración actualizada correctamente.")
+
+        return render_template('Inicio.html', user=user, show_config=True)

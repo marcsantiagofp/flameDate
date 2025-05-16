@@ -18,7 +18,7 @@
     <!-- Línea separadora -->
     <div class="sidebar-divider mb-3"></div>
 
-    <div class="tabs d-flex w-100 mb-3">
+    <div class="tabs d-flex w-100 mb-3" id="tabs">
       <a href="#" class="text-white text-decoration-none active-tab tab-item text-center">FLAMES</a>
       <a href="#" class="text-white text-decoration-none inactive-tab tab-item text-center">MENSAJES</a>
     </div>
@@ -29,18 +29,19 @@
       <!-- Distancia -->
       <div class="mb-3">
         <div class="w-100 text-start">
-          <label for="distanceRange" class="form-label">Distancia: <span id="distanceValue">50 km</span></label>
+          <label for="distanceRange" class="form-label">Distancia: <span id="distanceValue">5 km</span></label>
         </div>
-        <input type="range" id="distanceRange" class="styled-range" min="1" max="50" value="5" step="1">
+        <input type="range" id="distanceRange" class="styled-range" min="1" max="50" value="5" step="1" style="width:100%;">
       </div>
       <!-- Edad -->
       <div class="mb-3">
         <div class="w-100 text-start">
           <label for="minAge" class="form-label">Edad: <span id="ageValue">18 - 30</span></label>
         </div>
-        <div class="range-slider position-relative" id="ageSlider">
-          <input type="range" id="minAge" class="styled-range" min="18" max="50" value="18" step="1">
-          <input type="range" id="maxAge" class="styled-range" min="18" max="50" value="30" step="1">
+        <div class="range-slider position-relative d-flex align-items-center" id="ageSlider" style="gap:8px;">
+          <input type="range" id="minAge" class="styled-range" min="18" max="70" value="18" step="1" style="width:100%;">
+          <span class="mx-1">-</span>
+          <input type="range" id="maxAge" class="styled-range" min="18" max="70" value="30" step="1" style="width:100%;">
         </div>
       </div>
     </div>
@@ -100,6 +101,92 @@
     </div>
   </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const configIcon = document.getElementById("toggleConfig");
+  const configPanel = document.getElementById("config-panel");
+  const flameList = document.getElementById("flameList");
+  const tabs = document.getElementById("tabs");
+
+  let configVisible = false;
+
+  configIcon?.addEventListener("click", () => {
+    configVisible = !configVisible;
+    configPanel?.classList.toggle("d-none", !configVisible);
+    flameList?.classList.toggle("d-none", configVisible);
+    tabs?.classList.toggle("d-none", configVisible);
+  });
+
+  // Sliders
+  const distanceRange = document.getElementById("distanceRange");
+  const distanceValue = document.getElementById("distanceValue");
+  const minAgeSlider = document.getElementById("minAge");
+  const maxAgeSlider = document.getElementById("maxAge");
+  const ageValue = document.getElementById("ageValue");
+
+  function updateSingleSliderBackground(input) {
+    const val = parseInt(input.value);
+    const min = parseInt(input.min);
+    const max = parseInt(input.max);
+    const percent = ((val - min) / (max - min)) * 100;
+    input.style.background = `linear-gradient(to right, #ff4d4d 0%, #ff4d4d ${percent}%, rgba(255,255,255,0.2) ${percent}%)`;
+  }
+
+  function updateDualSliderBackground() {
+    const min = parseInt(minAgeSlider.min);
+    const max = parseInt(maxAgeSlider.max);
+    const minVal = parseInt(minAgeSlider.value);
+    const maxVal = parseInt(maxAgeSlider.value);
+
+    const minPercent = ((minVal - min) / (max - min)) * 100;
+    const maxPercent = ((maxVal - min) / (max - min)) * 100;
+
+    const gradient = 
+      `linear-gradient(to right,
+        rgba(255,255,255,0.2) ${minPercent}%,
+        #ff4d4d ${minPercent}%,
+        #ff4d4d ${maxPercent}%,
+        rgba(255,255,255,0.2) ${maxPercent}%)`;
+
+    minAgeSlider.style.background = gradient;
+    maxAgeSlider.style.background = gradient;
+  }
+
+  function updateDualSlider() {
+    let minVal = parseInt(minAgeSlider.value);
+    let maxVal = parseInt(maxAgeSlider.value);
+
+    if (minVal > maxVal - 1) {
+      minVal = maxVal - 1;
+      minAgeSlider.value = minVal;
+    }
+    if (maxVal < minVal + 1) {
+      maxVal = minVal + 1;
+      maxAgeSlider.value = maxVal;
+    }
+
+    ageValue.textContent = `${minVal} - ${maxVal}`;
+    updateDualSliderBackground();
+  }
+
+  distanceRange?.addEventListener("input", () => {
+    distanceValue.textContent = `${distanceRange.value} km`;
+    updateSingleSliderBackground(distanceRange);
+  });
+
+  minAgeSlider?.addEventListener("input", updateDualSlider);
+  maxAgeSlider?.addEventListener("input", updateDualSlider);
+
+  // Inicializar valores y backgrounds
+  if (distanceRange) {
+    distanceValue.textContent = `${distanceRange.value} km`;
+    updateSingleSliderBackground(distanceRange);
+  }
+  if (minAgeSlider && maxAgeSlider) {
+    updateDualSlider();
+  }
+});
+</script>
 {# <script src="{{ url_for('static', filename='swipe.js') }}" defer></script> #}
 {# <script src="{{ url_for('static', filename='config.js') }}" defer></script> #}
 <!-- Scripts comentados porque no existen aún -->
