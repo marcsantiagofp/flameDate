@@ -3,7 +3,7 @@ from flask import Flask, request, make_response, redirect, render_template, sess
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from .forms import LoginForm, RegisterForm
-from .models import User
+from .models import User, Matches, Flames
 from . import db
 from datetime import datetime
 
@@ -20,7 +20,23 @@ def register_routes(app):
             flash("Debes iniciar sesión para acceder a esta página.")
             return redirect(url_for('login'))
         user = User.query.filter_by(username=session['username']).first()
-        return render_template('Inicio.html', user=user)
+        # Get flames (mutual matches)
+        flames = Flames.query.filter(
+            (Flames.user1_id == user.id) | (Flames.user2_id == user.id)
+        ).all()
+        flame_users = set()
+        for flame in flames:
+            if flame.user1_id == user.id:
+                flame_users.add(flame.user2_id)
+            else:
+                flame_users.add(flame.user1_id)
+        # Exclude users who already have a flame with the current user
+        users = User.query.filter(
+            (User.username != session['username']) & (~User.id.in_(flame_users))
+        ).all()
+        # For display in flames list
+        flame_users_display = [User.query.get(uid) for uid in flame_users]
+        return render_template('Inicio.html', user=user, users=users, flame_users=flame_users_display)
 
     # USUARIOS 
     # Ruta para la página de registro
@@ -207,3 +223,33 @@ def register_routes(app):
             flash("Configuración actualizada correctamente.")
 
         return render_template('Inicio.html', user=user, show_config=True)
+
+    @app.route('/like', methods=['POST'])
+    def like():
+        if 'username' not in session:
+            return jsonify({'success': False, 'message': 'No autenticado'}), 401
+        user = User.query.filter_by(username=session['username']).first()
+        liked_user_id = request.json.get('liked_user_id')
+        if not liked_user_id:
+            return jsonify({'success': False, 'message': 'ID de usuario no proporcionado'}), 400
+        # Evitar duplicados
+        existing = Matches.query.filter_by(user_id=user.id, liked_user_id=liked_user_id).first()
+        if existing:
+            return jsonify({'success': False, 'message': 'Ya le diste like'}), 200
+        match = Matches(user_id=user.id, liked_user_id=liked_user_id)
+        db.session.add(match)
+        db.session.commit()
+        # Check for mutual like
+        mutual = Matches.query.filter_by(user_id=liked_user_id, liked_user_id=user.id).first()
+        if mutual:
+            # Avoid duplicate flames
+            already_flame = Flames.query.filter(
+                ((Flames.user1_id == user.id) & (Flames.user2_id == liked_user_id)) |
+                ((Flames.user1_id == liked_user_id) & (Flames.user2_id == user.id))
+            ).first()
+            if not already_flame:
+                flame = Flames(user1_id=user.id, user2_id=liked_user_id)
+                db.session.add(flame)
+                db.session.commit()
+            return jsonify({'success': True, 'message': '¡Es un flame!', 'flame': True})
+        return jsonify({'success': True, 'message': 'Like registrado', 'flame': False})

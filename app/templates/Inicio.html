@@ -48,28 +48,21 @@
 
     <!-- Lista de flames -->
     <div class="flame-list grid-flames" id="flameList">
+      {% for flame in flame_users %}
       <div class="flame-item text-center">
-        <img src="{{ url_for('static', filename='images/flame1.svg') }}" class="flame-img rounded-circle" alt="Raquel"/>
-        <p class="flame-name mb-0">RAQUEL, 22</p>
+        <img src="{{ url_for('static', filename=flame.profile_pic) if flame.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="flame-img rounded-circle" alt="{{ flame.username }}"/>
+        <p class="flame-name mb-0">{{ flame.username }}, {{ flame.age }}</p>
       </div>
-      <div class="flame-item text-center">
-        <img src="{{ url_for('static', filename='images/flame2.svg') }}" class="flame-img rounded-circle" alt="Judith"/>
-        <p class="flame-name mb-0">JUDITH, 21</p>
-      </div>
-      <div class="flame-item text-center">
-        <img src="{{ url_for('static', filename='images/flame3.svg') }}" class="flame-img rounded-circle" alt="Blanca"/>
-        <p class="flame-name mb-0">BLANCA, 23</p>
-      </div>
+      {% endfor %}
     </div>
   </div>
 
   <!-- Swiping Card -->
   <div class="main-content d-flex align-items-center justify-content-center flex-grow-1">
-    <div class="profile-card position-relative">
+    {% for user in users %}
+    <div class="profile-card position-relative mb-4 user-card" style="display: {{ 'block' if loop.first else 'none' }};" data-user-id="{{ user.id }}">
       <div class="image-carousel">
         <img src="{{ url_for('static', filename=user.profile_pic) if user.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="card-img active" alt="Foto perfil"/>
-        <!-- Si quieres más imágenes, puedes añadirlas aquí -->
-        <!-- Flechas invisibles a izquierda y derecha -->
         <div class="click-zone left-zone"></div>
         <div class="click-zone right-zone"></div>
         <div class="image-indicators">
@@ -90,7 +83,7 @@
           <div class="description text-end">{{ user.bio if user.bio else '✨ LO QUE SURJA' }}</div>
         </div>
         <div class="card-actions d-flex justify-content-center gap-4 mt-3">
-          <button class="btn btn-light rounded-circle icon-btn" aria-label="Nope">
+          <button class="btn btn-light rounded-circle icon-btn nope-btn" aria-label="Nope">
             <img src="{{ url_for('static', filename='images/cross.svg') }}" alt="Nope" width="35"/>
           </button>
           <button class="btn btn-light rounded-circle icon-btn flame-btn" aria-label="Like">
@@ -99,6 +92,7 @@
         </div>
       </div>
     </div>
+    {% endfor %}
   </div>
 </div>
 <script>
@@ -185,6 +179,48 @@ document.addEventListener("DOMContentLoaded", function() {
   if (minAgeSlider && maxAgeSlider) {
     updateDualSlider();
   }
+
+  // Swiping logic
+  const userCards = document.querySelectorAll('.user-card');
+  let currentIndex = 0;
+  function showCard(index) {
+    userCards.forEach((card, i) => {
+      card.style.display = (i === index) ? 'block' : 'none';
+    });
+  }
+  userCards.forEach((card, i) => {
+    // Nope button
+    card.querySelector('.nope-btn').addEventListener('click', function() {
+      if (currentIndex < userCards.length - 1) {
+        currentIndex++;
+        showCard(currentIndex);
+      } else {
+        card.style.display = 'none';
+      }
+    });
+    // Like button
+    card.querySelector('.flame-btn').addEventListener('click', function() {
+      const likedUserId = card.getAttribute('data-user-id');
+      fetch('/like', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ liked_user_id: likedUserId }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Optionally show a message or handle errors
+      });
+      // Move to next card
+      if (currentIndex < userCards.length - 1) {
+        currentIndex++;
+        showCard(currentIndex);
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
 });
 </script>
 {# <script src="{{ url_for('static', filename='swipe.js') }}" defer></script> #}
