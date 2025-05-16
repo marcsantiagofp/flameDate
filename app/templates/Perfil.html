@@ -13,7 +13,7 @@
         <img src="{{ url_for('static', filename='images/arrow-back.png') }}" alt="Volver"/>
       </a>
     </div>
-    <img id="profileAvatar" src="{{ url_for('static', filename=user.profile_pic) if user.profile_pic else url_for('static', filename='images/perfil.svg') }}" class="profile-avatar mb-3 rounded-circle" alt="Usuario"/>
+    <img id="profileAvatar" src="{{ url_for('static', filename=user.profile_pic) if user.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="profile-avatar mb-3 rounded-circle" alt="Usuario"/>
     <h2 class="profile-name">{{ user.username }}, {{ user.age if user.age else '' }}</h2>
     <p class="profile-status">{{ user.bio if user.bio else '✨ LO QUE SURJA' }}</p>
     <a href="{{ url_for('logout') }}" class="btn btn-logout mt-3">Cerrar Sesión</a>
