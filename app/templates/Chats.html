@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    FlameDate - Mensajes
+{% endblock %}
+
+{% block content %}
+<div class="swipes-page d-flex">
+  <!-- Sidebar -->
+  <div class="sidebar d-flex flex-column p-3 text-white">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <a href="{{ url_for('perfil') }}">
+        <img src="{{ url_for('static', filename=user.profile_pic) if user.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="profile-thumb rounded-circle" alt="Perfil" />
+      </a>
+    </div>
+    <div class="sidebar-divider mb-3"></div>
+    <div class="tabs d-flex w-100 mb-3">
+      <a href="{{ url_for('inicio') }}" class="text-white text-decoration-none inactive-tab tab-item text-center">FLAMES</a>
+      <a href="{{ url_for('chats') }}" class="text-white text-decoration-none active-tab tab-item text-center">MENSAJES</a>
+    </div>
+    <div class="chat-preview-list">
+      {% for flame in flame_users %}
+      <a href="{{ url_for('chats', user_id=flame.id) }}" class="chat-preview d-flex align-items-center text-decoration-none">
+        <img src="{{ url_for('static', filename=flame.profile_pic) if flame.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="chat-preview-avatar rounded-circle me-3" />
+        <div class="chat-preview-text">
+          <p class="chat-preview-name mb-0">{{ flame.username }}, {{ flame.age }}</p>
+          <p class="chat-preview-last">&nbsp;</p>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  <!-- Chat principal -->
+  <div class="main-container">
+    <div class="main-chat d-flex flex-column">
+      <!-- Cabecera -->
+      {% if chat_user %}
+      <div class="chat-header">
+        <img src="{{ url_for('static', filename=chat_user.profile_pic) if chat_user.profile_pic else url_for('static', filename='images/perfil.jpg') }}" alt="{{ chat_user.username }}" class="chat-avatar" />
+        <span class="chat-name">{{ chat_user.username }}, {{ chat_user.age }}</span>
+      </div>
+      <!-- Cuerpo -->
+      <div class="chat-body">
+        {% if messages %}
+          {% for msg in messages %}
+            <div class="message {% if msg.sender_id == user.id %}message-you{% else %}message-other{% endif %}">
+              {{ msg.content }}
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center text-muted mt-4">No hay mensajes aún.</div>
+        {% endif %}
+      </div>
+      <!-- Input -->
+      <form id="chat-form" class="chat-input" method="POST" autocomplete="off">
+        <input type="text" name="message" class="form-control message-input" placeholder="Escribe un mensaje..." autocomplete="off" />
+        <button type="submit" class="send-btn">
+          <img src="{{ url_for('static', filename='images/send.png') }}" alt="Enviar" />
+        </button>
+      </form>
+      <script>
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = chatForm.querySelector('.message-input');
+        const chatBody = document.querySelector('.chat-body');
+        // Get the current user_id from the URL (if present)
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatUserId = urlParams.get('user_id');
+        chatForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const content = messageInput.value.trim();
+          if (!content) return;
+          // Always POST to /chats?user_id=... so Flask gets the correct chat user
+          let postUrl = window.location.pathname;
+          if (chatUserId) {
+            postUrl += '?user_id=' + encodeURIComponent(chatUserId);
+          }
+          const response = await fetch(postUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: new URLSearchParams({ message: content }),
+          });
+          if (response.ok) {
+            window.location.reload();
+          }
+        });
+        // Permitir el envío del formulario al presionar Enter
+        messageInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            chatForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+          }
+        });
+      </script>
+      {% else %}
+      <div class="chat-header text-center text-muted">Selecciona un chat</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

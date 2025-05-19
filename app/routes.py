@@ -3,7 +3,7 @@ from flask import Flask, request, make_response, redirect, render_template, sess
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from .forms import LoginForm, RegisterForm
-from .models import User, Matches, Flames
+from .models import User, Matches, Flames, Message
 from . import db
 from datetime import datetime
 
@@ -253,3 +253,53 @@ def register_routes(app):
                 db.session.commit()
             return jsonify({'success': True, 'message': '¡Es un flame!', 'flame': True})
         return jsonify({'success': True, 'message': 'Like registrado', 'flame': False})
+
+    @app.route('/chats', methods=['GET', 'POST'])
+    def chats():
+        if 'username' not in session:
+            flash("Debes iniciar sesión para acceder a esta página.")
+            return redirect(url_for('login'))
+        user = User.query.filter_by(username=session['username']).first()
+        # Get flames (mutual matches)
+        flames = Flames.query.filter(
+            (Flames.user1_id == user.id) | (Flames.user2_id == user.id)
+        ).all()
+        flame_users = set()
+        for flame in flames:
+            if flame.user1_id == user.id:
+                flame_users.add(flame.user2_id)
+            else:
+                flame_users.add(flame.user1_id)
+        flame_users_display = [User.query.get(uid) for uid in flame_users]
+        chat_user_id = request.args.get('user_id', type=int)
+        chat_user = None
+        messages = []
+        # Mostrar el chat con el ultimo usuario con el que se chateó
+        if not chat_user_id and flame_users:
+            last_msg = (
+                Message.query.filter(
+                    ((Message.sender_id == user.id) & (Message.receiver_id.in_(flame_users))) |
+                    ((Message.sender_id.in_(flame_users)) & (Message.receiver_id == user.id))
+                )
+                .order_by(Message.timestamp.desc())
+                .first()
+            )
+            if last_msg:
+                if last_msg.sender_id == user.id:
+                    chat_user_id = last_msg.receiver_id
+                else:
+                    chat_user_id = last_msg.sender_id
+        if chat_user_id:
+            chat_user = User.query.get(chat_user_id)
+            if chat_user and chat_user.id in flame_users:
+                if request.method == 'POST':
+                    content = request.form.get('message')
+                    if content:
+                        new_msg = Message(sender_id=user.id, receiver_id=chat_user.id, content=content)
+                        db.session.add(new_msg)
+                        db.session.commit()
+                messages = Message.query.filter(
+                    ((Message.sender_id == user.id) & (Message.receiver_id == chat_user.id)) |
+                    ((Message.sender_id == chat_user.id) & (Message.receiver_id == user.id))
+                ).order_by(Message.timestamp.asc()).all()
+        return render_template('Chats.html', user=user, flame_users=flame_users_display, chat_user=chat_user, messages=messages)

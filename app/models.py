@@ -34,3 +34,13 @@ class Flames(db.Model):
 
     def __repr__(self):
         return f'<Flame {self.user1_id} & {self.user2_id}>'
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Message from {self.sender_id} to {self.receiver_id}>'
