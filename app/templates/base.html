@@ -9,11 +9,21 @@
 
 {% block body %}
 
-{% for message in get_flashed_messages() %}
-<div class="alert alert-success alert-dismissible">
-    <button type="button" class="close" data-bs-dismiss="alert" aria-label="tancar">&times;</button>
-    {{ message }}
-</div>
+{% for message in get_flashed_messages(with_categories=true) %}
+  {% set category, text = message %}
+  <div class="alert fade show custom-flash-alert alert-{{ 'success' if category=='message' else category }} position-fixed top-0 start-50 translate-middle-x mt-4 shadow-lg px-4 py-3 rounded-pill d-flex align-items-center" role="alert" style="z-index: 2000; min-width: 320px; max-width: 90vw; font-size: 1.1rem;">
+    <span class="me-2">
+      {% if category == 'success' or category == 'message' %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00C26D" class="bi bi-check-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/><path d="M10.97 5.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L5.324 10.384a.75.75 0 1 1 1.06-1.06l1.094 1.093 3.493-4.438z"/></svg>
+      {% elif category == 'error' or category == 'danger' %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#ED4C4C" class="bi bi-x-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+      {% else %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#59C5FF" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/><path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 .877-.252 1.02-.797l.088-.416c.066-.308.118-.438.288-.469l.45-.083.082-.38-2.29-.287.082-.38.45-.083c.294-.07.352-.176.288-.469l-.738-3.468C6.346 4.691 6.645 4.27 7.348 4.27c.545 0 .877.252 1.02.797l.088.416c.066.308.118.438.288.469l.45.083.082.38z"/></svg>
+      {% endif %}
+    </span>
+    <span>{{ text }}</span>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+  </div>
 {% endfor %}
 
 {% block content %}
@@ -67,12 +77,26 @@
 
     // Mensajes se cierran automaticamente
     setTimeout(function() {
-        let flashes = document.querySelectorAll('.alert');
+        let flashes = document.querySelectorAll('.custom-flash-alert');
         flashes.forEach(function(flash) {
-            flash.style.display = 'none';
+            flash.classList.remove('show');
+            flash.classList.add('fade');
+            setTimeout(function() {
+                flash.style.display = 'none';
+            }, 500); // Espera a que termine la animación fade
         });
     }, 2000); // 2000 milisegundos = 2 segundos
 </script>
 {% endblock %}
+
+<style>
+.custom-flash-alert {
+  animation: fadeInDown 1.5s;
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
 
 {% endblock %}
