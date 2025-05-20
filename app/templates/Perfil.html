@@ -13,7 +13,7 @@
         <img src="{{ url_for('static', filename='images/arrow-back.png') }}" alt="Volver"/>
       </a>
     </div>
-    <img id="profileAvatar" src="{{ url_for('static', filename=user.profile_pic) if user.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="profile-avatar mb-3 rounded-circle" alt="Usuario"/>
+    <img id="profileAvatar" src="{{ url_for('static', filename=profile_pic) }}" class="profile-avatar mb-3 rounded-circle" alt="Usuario"/>
     <h2 class="profile-name">{{ user.username }}, {{ user.age if user.age else '' }}</h2>
     <p class="profile-status">{{ user.bio if user.bio else '✨ LO QUE SURJA' }}</p>
     <a href="{{ url_for('logout') }}" class="btn btn-logout mt-3">Cerrar Sesión</a>
@@ -21,22 +21,27 @@
 
   <!-- Panel principal -->
   <div class="profile-settings text-white p-4 flex-grow-1">
-    <form method="POST" action="{{ url_for('perfil') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ url_for('perfil') }}" enctype="multipart/form-data" id="perfilForm">
       <div class="header d-flex align-items-center gap-3 mb-4">
           <img src="{{ url_for('static', filename='images/logo.svg') }}" class="logo-icon" alt="Logo"/>
           <h1 class="logo-text mb-0">FLAMEDATE</h1>
       </div>
       <h3 class="section-title">CONFIGURACIÓN</h3>
 
-      <!-- Editar fotos -->
-      <div class="photo-gallery d-flex gap-3 my-4">
-        <img id="profilePreview" src="{{ url_for('static', filename=user.profile_pic) if user.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="photo-thumb rounded"/>
-        <!-- Botón para añadir foto de perfil -->
-        <label for="profile_pic" class="photo-thumb add-photo d-flex align-items-center justify-content-center rounded mb-0" style="cursor:pointer;">
+      <!-- Galería de fotos -->
+      <div class="photo-gallery d-flex gap-3 my-4 flex-wrap" id="photoGallery">
+        {% for img in images %}
+        <div class="position-relative gallery-img" data-img-id="{{ img.id }}">
+          <img src="{{ url_for('static', filename=img.filename) }}" class="photo-thumb rounded"/>
+          <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 delete-img-btn" data-img-id="{{ img.id }}" style="z-index:2;">&times;</button>
+        </div>
+        {% endfor %}
+        <label for="images" class="photo-thumb add-photo d-flex align-items-center justify-content-center rounded mb-0" style="cursor:pointer;">
           <span class="plus-icon">+</span>
-          <input type="file" name="profile_pic" id="profile_pic" class="form-control d-none" accept="image/*" onchange="previewProfilePic(event)"/>
+          <input type="file" name="images" id="images" class="form-control d-none" accept="image/*" multiple/>
         </label>
       </div>
+      <input type="hidden" name="delete_images" id="delete_images"/>
 
       <!-- Agrupar todas las secciones horizontalmente -->
       <div class="d-flex flex-wrap align-items-end gap-4 mb-4">
@@ -100,6 +105,65 @@
   </div>
 </div>
 <script>
+let imagesToDelete = [];
+document.querySelectorAll('.delete-img-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    imagesToDelete.push(this.dataset.imgId);
+    this.parentElement.style.display = 'none';
+    document.getElementById('delete_images').value = imagesToDelete.join(',');
+  });
+});
+
+// Preview dinámico de imágenes nuevas antes de enviar el formulario
+const imagesInput = document.getElementById('images');
+const photoGallery = document.getElementById('photoGallery');
+let newImages = [];
+
+imagesInput.addEventListener('change', function(event) {
+  // Elimina previews anteriores de imágenes nuevas (no subidas)
+  document.querySelectorAll('.gallery-img.new-img').forEach(el => el.remove());
+  newImages = [];
+  const files = Array.from(event.target.files);
+  files.forEach((file, idx) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      // Crear el contenedor y la imagen
+      const div = document.createElement('div');
+      div.className = 'position-relative gallery-img new-img';
+      div.dataset.imgIdx = idx;
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.className = 'photo-thumb rounded';
+      // Botón para eliminar la imagen antes de subir
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-danger btn-sm position-absolute top-0 end-0';
+      btn.style.zIndex = 2;
+      btn.innerHTML = '&times;';
+      btn.onclick = function() {
+        div.remove();
+        // Elimina el archivo del input file (no se subirá)
+        newImages[idx] = null;
+        // Si todas son null, limpia el input file
+        if (newImages.every(x => x === null)) {
+          imagesInput.value = '';
+        }
+      };
+      div.appendChild(img);
+      div.appendChild(btn);
+      // Insertar antes del botón de añadir
+      photoGallery.insertBefore(div, photoGallery.querySelector('label.add-photo'));
+      newImages[idx] = file;
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+// Opcional: limpiar previews si se envía el formulario o se recarga la página
+window.addEventListener('beforeunload', function() {
+  newImages = [];
+});
+
 function previewProfilePic(event) {
   const input = event.target;
   if (input.files && input.files[0]) {

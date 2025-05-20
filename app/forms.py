@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, EmailField, SelectField, IntegerField, RadioField
+from wtforms import StringField, PasswordField, SubmitField, EmailField, SelectField, IntegerField, RadioField, MultipleFileField, HiddenField
 from wtforms.validators import DataRequired, Length, EqualTo, Email, Optional
 
 # Formulario de login
@@ -28,6 +28,8 @@ class UpdatePerfilForm(FlaskForm):
         ('blue', '🤝 HACER AMIGOS'),
         ('sparkle', '✨ LO QUE SURJA')
     ], validators=[Optional()])
+    images = MultipleFileField('Subir imágenes')
+    delete_images = HiddenField('Imágenes a eliminar (ids separadas por coma)')
     submit = SubmitField('Actualizar')
 
 class UpdateUserForm(FlaskForm):

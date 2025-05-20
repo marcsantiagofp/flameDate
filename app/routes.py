@@ -3,7 +3,7 @@ from flask import Flask, request, make_response, redirect, render_template, sess
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from .forms import LoginForm, RegisterForm
-from .models import User, Matches, Flames, Message
+from .models import User, Matches, Flames, Message, UserImage
 from . import db
 from datetime import datetime
 
@@ -36,7 +36,9 @@ def register_routes(app):
         ).all()
         # For display in flames list
         flame_users_display = [User.query.get(uid) for uid in flame_users]
-        return render_template('Inicio.html', user=user, users=users, flame_users=flame_users_display)
+        images = user.images.order_by(UserImage.uploaded_at.asc()).all()
+        profile_pic = images[0].filename if images else 'images/perfil.jpg'
+        return render_template('Inicio.html', user=user, users=users, flame_users=flame_users_display, profile_pic=profile_pic)
 
     # USUARIOS 
     # Ruta para la página de registro
@@ -183,21 +185,38 @@ def register_routes(app):
                 elif busca == 'sparkle':
                     user.bio = '✨ LO QUE SURJA'
 
-            # Guardar imagen de perfil
-            file = request.files.get('profile_pic')
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                upload_folder = os.path.join(app.root_path, 'static', 'uploads')
-                os.makedirs(upload_folder, exist_ok=True)
-                upload_path = os.path.join(upload_folder, filename)
-                file.save(upload_path)
-                user.profile_pic = f'uploads/{filename}'
+            # Eliminar imágenes seleccionadas
+            delete_images = request.form.get('delete_images', '')
+            if delete_images:
+                ids = [int(i) for i in delete_images.split(',') if i.strip().isdigit()]
+                for img_id in ids:
+                    img = UserImage.query.filter_by(id=img_id, user_id=user.id).first()
+                    if img:
+                        # Borra el archivo físico si existe
+                        img_path = os.path.join(app.root_path, 'static', img.filename)
+                        if os.path.exists(img_path):
+                            os.remove(img_path)
+                        db.session.delete(img)
+
+            # Subir nuevas imágenes
+            files = request.files.getlist('images')
+            for file in files:
+                if file and file.filename:
+                    filename = secure_filename(file.filename)
+                    upload_folder = os.path.join(app.root_path, 'static', 'uploads')
+                    os.makedirs(upload_folder, exist_ok=True)
+                    upload_path = os.path.join(upload_folder, filename)
+                    file.save(upload_path)
+                    rel_path = f'uploads/{filename}'
+                    db.session.add(UserImage(user_id=user.id, filename=rel_path))
 
             db.session.commit()
             flash("Perfil actualizado correctamente.")
             session['username'] = user.username
 
-        return render_template('Perfil.html', user=user)
+        images = user.images.order_by(UserImage.uploaded_at.asc()).all()
+        profile_pic = images[0].filename if images else 'images/perfil.jpg'
+        return render_template('Perfil.html', user=user, images=images, profile_pic=profile_pic)
 
     # Ruta para mostrar la configuración del usuario (configuración de búsqueda)
     @app.route('/config', methods=['GET', 'POST'])

@@ -10,7 +10,7 @@
   <div class="sidebar d-flex flex-column p-3 text-white">
     <div class="d-flex align-items-center justify-content-between mb-3">
       <a href="{{ url_for('perfil') }}">
-        <img src="{{ url_for('static', filename=user.profile_pic) if user.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="profile-thumb rounded-circle" alt="Perfil"/>
+        <img src="{% if user.images.count() > 0 %}{{ url_for('static', filename=user.images.order_by('uploaded_at').first().filename) }}{% else %}{{ url_for('static', filename='images/perfil.jpg') }}{% endif %}" class="profile-thumb rounded-circle" alt="Perfil"/>
       </a>
       <img src="{{ url_for('static', filename='images/config.svg') }}" alt="Configurar" class="config-icon" id="toggleConfig"/>
     </div>
@@ -50,7 +50,7 @@
     <div class="flame-list grid-flames" id="flameList">
       {% for flame in flame_users %}
       <div class="flame-item text-center">
-        <img src="{{ url_for('static', filename=flame.profile_pic) if flame.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="flame-img rounded-circle" alt="{{ flame.username }}"/>
+        <img src="{{ url_for('static', filename=flame.images.order_by('uploaded_at').first().filename) if flame.images.count() > 0 else url_for('static', filename='images/perfil.jpg') }}" class="flame-img rounded-circle" alt="{{ flame.username }}"/>
         <p class="flame-name mb-0">{{ flame.username }}, {{ flame.age }}</p>
       </div>
       {% endfor %}
@@ -61,12 +61,24 @@
   <div class="main-content d-flex align-items-center justify-content-center flex-grow-1">
     {% for user in users %}
     <div class="profile-card position-relative mb-4 user-card" style="display: {{ 'block' if loop.first else 'none' }};" data-user-id="{{ user.id }}">
-      <div class="image-carousel">
-        <img src="{{ url_for('static', filename=user.profile_pic) if user.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="card-img active" alt="Foto perfil"/>
+      <div class="image-carousel" data-user-id="{{ user.id }}">
+        {% set images = user.images.order_by('uploaded_at').all() %}
+        {% if images %}
+          {% for img in images %}
+            <img src="{{ url_for('static', filename=img.filename) }}" class="card-img{% if loop.first %} active{% endif %}" alt="Foto perfil" data-img-idx="{{ loop.index0 }}"/>
+          {% endfor %}
+        {% else %}
+          <img src="{{ url_for('static', filename='images/perfil.jpg') }}" class="card-img active" alt="Foto perfil" data-img-idx="0"/>
+        {% endif %}
         <div class="click-zone left-zone"></div>
         <div class="click-zone right-zone"></div>
         <div class="image-indicators">
-          <div class="indicator active"></div>
+          {% for img in images %}
+            <div class="indicator{% if loop.first %} active{% endif %}" data-img-idx="{{ loop.index0 }}"></div>
+          {% endfor %}
+          {% if not images %}
+            <div class="indicator active" data-img-idx="0"></div>
+          {% endif %}
         </div>
       </div>
       <div class="card-info">
@@ -219,6 +231,43 @@ document.addEventListener("DOMContentLoaded", function() {
       } else {
         card.style.display = 'none';
       }
+    });
+  });
+
+  // Imagenes de perfil: carrusel manual
+  document.querySelectorAll('.image-carousel').forEach(function(carousel) {
+    const imgs = carousel.querySelectorAll('.card-img');
+    const indicators = carousel.querySelectorAll('.indicator');
+    let idx = 0;
+    if (imgs.length <= 1) return;
+
+    function showImg(newIdx) {
+      imgs.forEach((img, i) => {
+        img.classList.toggle('active', i === newIdx);
+      });
+      indicators.forEach((ind, i) => {
+        ind.classList.toggle('active', i === newIdx);
+      });
+      idx = newIdx;
+    }
+
+    carousel.querySelector('.left-zone').addEventListener('click', function() {
+      if (imgs.length > 1) {
+        let newIdx = (idx - 1 + imgs.length) % imgs.length;
+        showImg(newIdx);
+      }
+    });
+    carousel.querySelector('.right-zone').addEventListener('click', function() {
+      if (imgs.length > 1) {
+        let newIdx = (idx + 1) % imgs.length;
+        showImg(newIdx);
+      }
+    });
+    // También permite hacer clic en los indicadores
+    indicators.forEach((ind, i) => {
+      ind.addEventListener('click', function() {
+        showImg(i);
+      });
     });
   });
 });

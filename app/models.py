@@ -11,7 +11,6 @@ class User(db.Model):
     gender = db.Column(db.Enum('male', 'female', 'other'), nullable=True)
     preference = db.Column(db.Enum('male', 'female', 'both'), nullable=True)
     bio = db.Column(db.Text, nullable=True)
-    profile_pic = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
@@ -44,3 +43,14 @@ class Message(db.Model):
 
     def __repr__(self):
         return f'<Message from {self.sender_id} to {self.receiver_id}>'
+
+class UserImage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    uploaded_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('images', lazy='dynamic'))
+
+    def __repr__(self):
+        return f'<UserImage {self.filename} for user {self.user_id}>'
