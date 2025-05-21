@@ -65,11 +65,11 @@
         <!-- Identidad -->
         <div class="info-section">
           <h5 class="mb-3">ME IDENTIFICO</h5>
-          <select name="identidad" class="form-select custom-select w-auto d-inline-block">
-            <option value="Heterosexual" {% if user.gender == 'male' %}selected{% endif %}>Heterosexual</option>
-            <option value="Homosexual" {% if user.gender == 'female' %}selected{% endif %}>Homosexual</option>
-            <option value="Bisexual" {% if user.gender == 'other' %}selected{% endif %}>Bisexual</option>
-            <option value="Otro" {% if user.gender == 'other' %}selected{% endif %}>Otro</option>
+          <select name="sex_ori" class="form-select custom-select w-auto d-inline-block mb-2">
+            <option value="Heterosexual" {% if user.sex_ori == 'Heterosexual' %}selected{% endif %}>Heterosexual</option>
+            <option value="Homosexual" {% if user.sex_ori == 'Homosexual' %}selected{% endif %}>Homosexual</option>
+            <option value="Bisexual" {% if user.sex_ori == 'Bisexual' %}selected{% endif %}>Bisexual</option>
+            <option value="Otro" {% if user.sex_ori == 'Otro' %}selected{% endif %}>Otro</option>
           </select>
         </div>
       </div>

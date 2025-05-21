@@ -30,10 +30,17 @@ def register_routes(app):
                 flame_users.add(flame.user2_id)
             else:
                 flame_users.add(flame.user1_id)
-        # Exclude users who already have a flame with the current user
-        users = User.query.filter(
+        # Filtrar usuarios según preferencia
+        query = User.query.filter(
             (User.username != session['username']) & (~User.id.in_(flame_users))
-        ).all()
+        )
+        if user.preference == 'male':
+            query = query.filter(User.gender == 'male')
+        elif user.preference == 'female':
+            query = query.filter(User.gender == 'female')
+        elif user.preference == 'both':
+            query = query.filter(User.gender.in_(['male', 'female']))
+        users = query.all()
         # For display in flames list
         flame_users_display = [User.query.get(uid) for uid in flame_users]
         images = user.images.order_by(UserImage.uploaded_at.asc()).all()
@@ -138,6 +145,7 @@ def register_routes(app):
             intereses = request.form.get('intereses')
             identidad = request.form.get('identidad')
             busca = request.form.get('busca')
+            sex_ori = request.form.get('sex_ori')  # Nuevo campo para orientación sexual
 
             # Actualiza nombre de usuario
             if username:
@@ -171,6 +179,10 @@ def register_routes(app):
                     user.gender = 'other'
                 elif identidad == 'Otro':
                     user.gender = 'other'
+
+            # Actualiza orientación sexual
+            if sex_ori:
+                user.sex_ori = sex_ori
 
             # Actualiza bio con lo que busca
             if busca:

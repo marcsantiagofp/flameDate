@@ -22,6 +22,7 @@ class UpdatePerfilForm(FlaskForm):
     edad = IntegerField('Edad', validators=[Optional()])
     intereses = SelectField('Intereses', choices=[('Mujeres', 'Mujeres'), ('Hombres', 'Hombres'), ('Ambos', 'Ambos')], validators=[Optional()])
     identidad = SelectField('Identidad', choices=[('Heterosexual', 'Heterosexual'), ('Homosexual', 'Homosexual'), ('Bisexual', 'Bisexual'), ('Otro', 'Otro')], validators=[Optional()])
+    sex_ori = StringField('Orientación sexual', validators=[Optional()])  # Añadido
     busca = RadioField('Busco', choices=[
         ('red', '😍 RELACIÓN ESTABLE'),
         ('yellow', '😅 ROLLOS CORTOS'),

@@ -10,6 +10,7 @@ class User(db.Model):
     age = db.Column(db.Integer, nullable=True)
     gender = db.Column(db.Enum('male', 'female', 'other'), nullable=True)
     preference = db.Column(db.Enum('male', 'female', 'both'), nullable=True)
+    sex_ori = db.Column(db.String(50), nullable=True)  # Nueva columna para orientación sexual
     bio = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 

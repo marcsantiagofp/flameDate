@@ -89,7 +89,11 @@
               {% if user.age %}<span class="age">{{ user.age }}</span>{% endif %}
             </h2>
             <p class="distance mb-0">
-              {% if user.preference == 'female' %}Prefiere: Mujeres{% elif user.preference == 'male' %}Prefiere: Hombres{% elif user.preference == 'both' %}Prefiere: Ambos{% endif %}
+              {% if user.sex_ori %}
+                {{ user.sex_ori }}
+              {% else %}
+                Sin orientación especificada
+              {% endif %}
             </p>
           </div>
           <div class="description text-end">{{ user.bio if user.bio else '✨ LO QUE SURJA' }}</div>
