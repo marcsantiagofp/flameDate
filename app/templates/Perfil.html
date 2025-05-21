@@ -50,6 +50,11 @@
           <h5 class="mb-3">INFORMACIÓN PERSONAL</h5>
           <input type="text" name="username" class="form-input me-2" placeholder="Nombre" value="{{ user.username }}"/>
           <input type="number" name="edad" class="form-input" placeholder="Edad" value="{{ user.age if user.age else '' }}"/>
+          <select name="gender" class="form-select custom-select w-auto d-inline-block mt-2">
+            <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Hombre</option>
+            <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Mujer</option>
+            <option value="other" {% if user.gender == 'other' %}selected{% endif %}>Otro</option>
+          </select>
         </div>
 
         <!-- Intereses -->

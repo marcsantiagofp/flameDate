@@ -70,6 +70,7 @@ def register_routes(app):
             email = request.form.get('email')
             password = request.form.get('password')
             confirm_password = request.form.get('confirm_password')
+            gender = request.form.get('gender')  # Nuevo campo para género
 
             # Validación básica
             if not username or not email or not password or not confirm_password:
@@ -87,6 +88,8 @@ def register_routes(app):
 
             hashed_password = generate_password_hash(password)
             new_user = User(username=username, email=email, password=hashed_password)
+            if gender:
+                new_user.gender = gender
             db.session.add(new_user)
             db.session.commit()
             flash("Usuario creado correctamente. ¡Ahora puedes iniciar sesión!")
@@ -156,9 +159,9 @@ def register_routes(app):
             username = request.form.get('username')
             edad = request.form.get('edad')
             intereses = request.form.get('intereses')
-            identidad = request.form.get('identidad')
+            gender = request.form.get('gender')  # <-- Recoge el valor del select de género
+            sex_ori = request.form.get('sex_ori')
             busca = request.form.get('busca')
-            sex_ori = request.form.get('sex_ori')  # Nuevo campo para orientación sexual
 
             # Actualiza nombre de usuario
             if username:
@@ -173,7 +176,6 @@ def register_routes(app):
 
             # Actualiza preferencias (intereses)
             if intereses:
-                # El modelo espera 'preference' como 'male', 'female', 'both'
                 if intereses == 'Mujeres':
                     user.preference = 'female'
                 elif intereses == 'Hombres':
@@ -181,17 +183,9 @@ def register_routes(app):
                 elif intereses == 'Ambos':
                     user.preference = 'both'
 
-            # Actualiza identidad (gender)
-            if identidad:
-                # El modelo espera 'gender' como 'male', 'female', 'other'
-                if identidad == 'Heterosexual':
-                    user.gender = 'male'
-                elif identidad == 'Homosexual':
-                    user.gender = 'female'
-                elif identidad == 'Bisexual':
-                    user.gender = 'other'
-                elif identidad == 'Otro':
-                    user.gender = 'other'
+            # Actualiza género (gender)
+            if gender in ['male', 'female', 'other']:
+                user.gender = gender
 
             # Actualiza orientación sexual
             if sex_ori:
