@@ -71,9 +71,15 @@ minAgeSlider.addEventListener("input", () => {
   let minVal = parseInt(minAgeSlider.value);
   let maxVal = parseInt(maxAgeSlider.value);
 
+  // Si el mínimo supera el máximo, mueve el máximo
   if (minVal > maxVal - 1) {
-    minVal = maxVal - 1;
-    minAgeSlider.value = minVal;
+    maxVal = minVal + 1;
+    if (maxVal > parseInt(maxAgeSlider.max)) {
+      maxVal = parseInt(maxAgeSlider.max);
+      minVal = maxVal - 1;
+      minAgeSlider.value = minVal;
+    }
+    maxAgeSlider.value = maxVal;
   }
 
   updateDualSlider();
@@ -83,9 +89,15 @@ maxAgeSlider.addEventListener("input", () => {
   let minVal = parseInt(minAgeSlider.value);
   let maxVal = parseInt(maxAgeSlider.value);
 
+  // Si el máximo es menor o igual al mínimo, mueve el mínimo
   if (maxVal < minVal + 1) {
-    maxVal = minVal + 1;
-    maxAgeSlider.value = maxVal;
+    minVal = maxVal - 1;
+    if (minVal < parseInt(minAgeSlider.min)) {
+      minVal = parseInt(minAgeSlider.min);
+      maxVal = minVal + 1;
+      maxAgeSlider.value = maxVal;
+    }
+    minAgeSlider.value = minVal;
   }
 
   updateDualSlider();

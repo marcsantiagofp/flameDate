@@ -14,7 +14,7 @@ def register_routes(app):
     def index():
         return redirect(url_for('login'))
     
-    @app.route('/inicio')
+    @app.route('/inicio', methods=['GET', 'POST'])
     def inicio():
         if 'username' not in session:
             flash("Debes iniciar sesión para acceder a esta página.")
@@ -30,7 +30,10 @@ def register_routes(app):
                 flame_users.add(flame.user2_id)
             else:
                 flame_users.add(flame.user1_id)
-        # Filtrar usuarios según preferencia
+        # Obtener rango de edad de la request (GET o POST)
+        min_age = request.values.get('minAge', default=18, type=int)
+        max_age = request.values.get('maxAge', default=30, type=int)
+        # Filtrar usuarios según preferencia y rango de edad
         query = User.query.filter(
             (User.username != session['username']) & (~User.id.in_(flame_users))
         )
@@ -40,12 +43,22 @@ def register_routes(app):
             query = query.filter(User.gender == 'female')
         elif user.preference == 'both':
             query = query.filter(User.gender.in_(['male', 'female']))
+        # Filtrar por rango de edad si existe el campo age
+        query = query.filter(User.age >= min_age, User.age <= max_age)
         users = query.all()
         # For display in flames list
         flame_users_display = [User.query.get(uid) for uid in flame_users]
         images = user.images.order_by(UserImage.uploaded_at.asc()).all()
         profile_pic = images[0].filename if images else 'images/perfil.jpg'
-        return render_template('Inicio.html', user=user, users=users, flame_users=flame_users_display, profile_pic=profile_pic)
+        return render_template(
+            'Inicio.html',
+            user=user,
+            users=users,
+            flame_users=flame_users_display,
+            profile_pic=profile_pic,
+            min_age=min_age,
+            max_age=max_age
+        )
 
     # USUARIOS 
     # Ruta para la página de registro
