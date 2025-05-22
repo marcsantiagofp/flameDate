@@ -10,7 +10,7 @@
   <div class="sidebar d-flex flex-column p-3 text-white">
     <div class="d-flex align-items-center justify-content-between mb-3">
       <a href="{{ url_for('perfil') }}">
-        <img src="{{ url_for('static', filename=user.profile_pic) if user.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="profile-thumb rounded-circle" alt="Perfil" />
+        <img src="{% if user.images.count() > 0 %}{{ url_for('static', filename=user.images.order_by('uploaded_at').first().filename) }}{% else %}{{ url_for('static', filename='images/perfil.jpg') }}{% endif %}" class="profile-thumb rounded-circle" alt="Perfil" />
       </a>
     </div>
     <div class="sidebar-divider mb-3"></div>
@@ -21,7 +21,7 @@
     <div class="chat-preview-list">
       {% for flame in flame_users %}
       <a href="{{ url_for('chats', user_id=flame.id) }}" class="chat-preview d-flex align-items-center text-decoration-none">
-        <img src="{{ url_for('static', filename=flame.profile_pic) if flame.profile_pic else url_for('static', filename='images/perfil.jpg') }}" class="chat-preview-avatar rounded-circle me-3" />
+        <img src="{% if flame.images and flame.images.count() > 0 %}{{ url_for('static', filename=flame.images.order_by('uploaded_at').first().filename) }}{% else %}{{ url_for('static', filename='images/perfil.jpg') }}{% endif %}" class="chat-preview-avatar rounded-circle me-3" />
         <div class="chat-preview-text">
           <p class="chat-preview-name mb-0">{{ flame.username }}, {{ flame.age }}</p>
           <p class="chat-preview-last">&nbsp;</p>
@@ -36,7 +36,7 @@
       <!-- Cabecera -->
       {% if chat_user %}
       <div class="chat-header">
-        <img src="{{ url_for('static', filename=chat_user.profile_pic) if chat_user.profile_pic else url_for('static', filename='images/perfil.jpg') }}" alt="{{ chat_user.username }}" class="chat-avatar" />
+        <img src="{% if chat_user.images and chat_user.images.count() > 0 %}{{ url_for('static', filename=chat_user.images.order_by('uploaded_at').first().filename) }}{% else %}{{ url_for('static', filename='images/perfil.jpg') }}{% endif %}" alt="{{ chat_user.username }}" class="chat-avatar" />
         <span class="chat-name">{{ chat_user.username }}, {{ chat_user.age }}</span>
       </div>
       <!-- Cuerpo -->
@@ -48,7 +48,11 @@
             </div>
           {% endfor %}
         {% else %}
-          <div class="text-center text-muted mt-4">No hay mensajes aún.</div>
+          <div class="d-flex justify-content-center align-items-center" style="height: 100%;">
+            <div class="text-center w-100" style="font-size: 2rem; font-weight: bold; color: #000;">
+              No hay mensajes aún.
+            </div>
+          </div>
         {% endif %}
       </div>
       <!-- Input -->

@@ -43,7 +43,9 @@
     <div class="flame-list grid-flames" id="flameList">
       {% for flame in flame_users %}
       <div class="flame-item text-center">
-        <img src="{{ url_for('static', filename=flame.images.order_by('uploaded_at').first().filename) if flame.images.count() > 0 else url_for('static', filename='images/perfil.jpg') }}" class="flame-img rounded-circle" alt="{{ flame.username }}"/>
+        <a href="#" class="flame-view-photos" data-user-id="{{ flame.id }}">
+          <img src="{{ url_for('static', filename=flame.images.order_by('uploaded_at').first().filename) if flame.images.count() > 0 else url_for('static', filename='images/perfil.jpg') }}" class="flame-img rounded-circle" alt="{{ flame.username }}"/>
+        </a>
         <p class="flame-name mb-0">{{ flame.username }}, {{ flame.age }}</p>
       </div>
       {% endfor %}
@@ -104,6 +106,17 @@
     {% endfor %}
   </div>
 </div>
+
+<!-- Modal de fotos de flame -->
+<div id="flamePhotosCenter" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); z-index:9999; justify-content:center; align-items:center;">
+  <div id="flamePhotosContent" style="background:rgba(30,30,30,0.98); border-radius:24px; padding:36px 32px 24px 32px; display:flex; flex-direction:column; align-items:center; max-width:95vw; max-height:90vh; box-shadow:0 8px 40px rgba(0,0,0,0.5); position:relative;">
+    <button id="closeFlamePhotos" style="position:absolute; top:18px; right:24px; background:none; border:none; color:white; font-size:2.5rem; font-weight:bold; cursor:pointer; line-height:1;">&times;</button>
+    <div id="flamePhotoSingleView" style="display:flex; align-items:center; justify-content:center; width:340px; height:340px; position:relative;">
+      <img id="flamePhotoImg" src="" style="max-width:320px; max-height:320px; border-radius:18px; background:#222; box-shadow:0 4px 18px rgba(0,0,0,0.25); display:none; cursor:pointer;">
+    </div>
+  </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   const configIcon = document.getElementById("toggleConfig");
@@ -262,6 +275,59 @@ document.addEventListener("DOMContentLoaded", function() {
         showImg(i);
       });
     });
+  });
+
+  // Mostrar fotos de flame en el centro de la pantalla
+  document.querySelectorAll('.flame-view-photos').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const userId = this.getAttribute('data-user-id');
+      fetch(`/user_photos/${userId}`)
+        .then(resp => resp.json())
+        .then(data => {
+          flamePhotos = data.images || [];
+          flamePhotoIdx = 0;
+          showFlamePhoto(flamePhotoIdx);
+          document.getElementById('flamePhotosCenter').style.display = 'flex';
+        });
+    });
+  });
+
+  // Modal de fotos de flame: 1 a 1 con navegación (sin flechas ni contador)
+  let flamePhotos = [];
+  let flamePhotoIdx = 0;
+
+  function showFlamePhoto(idx) {
+    const imgElem = document.getElementById('flamePhotoImg');
+    if (flamePhotos.length === 0) {
+      imgElem.style.display = 'none';
+      imgElem.alt = 'No hay fotos para mostrar.';
+      imgElem.src = '';
+      return;
+    }
+    flamePhotoIdx = ((idx % flamePhotos.length) + flamePhotos.length) % flamePhotos.length; // wrap-around
+    imgElem.src = flamePhotos[flamePhotoIdx];
+    imgElem.style.display = 'block';
+    imgElem.alt = 'Foto de flame';
+  }
+
+  document.getElementById('flamePhotoImg').onclick = function(e) {
+    if (flamePhotos.length <= 1) return;
+    const rect = this.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if (x < rect.width / 2) {
+      showFlamePhoto(flamePhotoIdx - 1);
+    } else {
+      showFlamePhoto(flamePhotoIdx + 1);
+    }
+  };
+
+  // Cerrar el visor de fotos
+  document.getElementById('closeFlamePhotos').onclick = function() {
+    document.getElementById('flamePhotosCenter').style.display = 'none';
+  };
+  document.getElementById('flamePhotosCenter').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
   });
 });
 </script>

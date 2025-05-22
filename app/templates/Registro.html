@@ -9,13 +9,13 @@
         <!-- Panel de Registro (formulario) -->
         <div class="col-md-6 right-panel d-flex flex-column align-items-center justify-content-center p-5">
             <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" class="brand-logo mb-3"/>
-            <h1 class="brand-title text-white mb-4">FLAMEDATE</h1>
-            <form method="POST" action="{{ url_for('register') }}">
+            <h1 class="brand-title text-white mb-4 w-100 text-center">FLAMEDATE</h1>
+            <form method="POST" action="{{ url_for('register') }}" class="w-100">
                 {{ register_form.hidden_tag() }}
-                <input type="text" name="username" class="form-control my-2" placeholder="Nombre de usuario" required>
-                <input type="email" name="email" class="form-control my-2" placeholder="Correo electrónico" required>
-                <input type="password" name="password" class="form-control my-2" placeholder="Contraseña" required>
-                <input type="password" name="confirm_password" class="form-control my-2" placeholder="Repetir contraseña" required>
+                <input type="text" name="username" class="form-control form-control-lg my-2 w-100" placeholder="Nombre de usuario" required>
+                <input type="email" name="email" class="form-control form-control-lg my-2 w-100" placeholder="Correo electrónico" required>
+                <input type="password" name="password" class="form-control form-control-lg my-2 w-100" placeholder="Contraseña" required>
+                <input type="password" name="confirm_password" class="form-control form-control-lg my-2 w-100" placeholder="Repetir contraseña" required>
                 <button type="submit" class="btn btn-danger w-100 rounded-pill my-3">Registrarse</button>
             </form>
             <p class="divider my-3 text-white"><span>OR</span></p>

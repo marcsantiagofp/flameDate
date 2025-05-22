@@ -341,3 +341,14 @@ def register_routes(app):
                     ((Message.sender_id == chat_user.id) & (Message.receiver_id == user.id))
                 ).order_by(Message.timestamp.asc()).all()
         return render_template('Chats.html', user=user, flame_users=flame_users_display, chat_user=chat_user, messages=messages)
+
+    @app.route('/user_photos/<int:user_id>')
+    def user_photos(user_id):
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'images': []})
+        images = [
+            url_for('static', filename=img.filename)
+            for img in user.images.order_by(UserImage.uploaded_at.asc()).all()
+        ]
+        return jsonify({'images': images})
