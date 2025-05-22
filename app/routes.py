@@ -7,6 +7,9 @@ from .models import User, Matches, Flames, Message, UserImage
 from . import db
 from datetime import datetime
 
+# Variable global para guardar la última acción del ESP32
+esp32_action = {'action': 'none'}
+
 def register_routes(app):
     from app.models import User, db
     # PAGINA PRINCIPAL
@@ -352,3 +355,25 @@ def register_routes(app):
             for img in user.images.order_by(UserImage.uploaded_at.asc()).all()
         ]
         return jsonify({'images': images})
+    
+    # Endpoint que recibe la señal del ESP32
+    @app.route('/esp32', methods=['POST'])
+    def esp32_trigger():
+        global esp32_action
+        data = request.get_json()
+        valor = data.get('valor')
+        if valor is True:
+            esp32_action['action'] = 'like'
+        elif valor is False:
+            esp32_action['action'] = 'nope'
+        else:
+            esp32_action['action'] = 'none'
+        return jsonify({'ok': True})
+
+    # Endpoint que consulta el frontend para saber si hay acción pendiente
+    @app.route('/esp32_poll')
+    def esp32_poll():
+        global esp32_action
+        action = esp32_action['action']
+        esp32_action['action'] = 'none'  # Resetea después de leer
+        return jsonify({'action': action})

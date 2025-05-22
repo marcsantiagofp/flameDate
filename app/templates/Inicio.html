@@ -330,5 +330,23 @@ document.addEventListener("DOMContentLoaded", function() {
     if (e.target === this) this.style.display = 'none';
   });
 });
+
+
+// Escucha instrucciones del ESP32 cada segundo
+setInterval(function() {
+  fetch('/esp32_poll')
+    .then(resp => resp.json())
+    .then(data => {
+      if (data.action === 'like') {
+        const btn = document.querySelector('.user-card[style*="block"] .flame-btn');
+        if (btn) btn.click();
+      } else if (data.action === 'nope') {
+        const btn = document.querySelector('.user-card[style*="block"] .nope-btn');
+        if (btn) btn.click();
+      }
+    });
+}, 1000);
+
+
 </script>
 {% endblock %}
