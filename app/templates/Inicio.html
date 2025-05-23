@@ -209,12 +209,16 @@ document.addEventListener("DOMContentLoaded", function() {
   userCards.forEach((card, i) => {
     // Nope button
     card.querySelector('.nope-btn').addEventListener('click', function() {
-      if (currentIndex < userCards.length - 1) {
-        currentIndex++;
-        showCard(currentIndex);
-      } else {
-        card.style.display = 'none';
-      }
+      card.classList.add('swipe-left');
+      setTimeout(() => {
+        card.classList.remove('swipe-left');
+        if (currentIndex < userCards.length - 1) {
+          currentIndex++;
+          showCard(currentIndex);
+        } else {
+          card.style.display = 'none';
+        }
+      }, 500); // Duración de la animación
     });
     // Like button
     card.querySelector('.flame-btn').addEventListener('click', function() {
@@ -230,13 +234,16 @@ document.addEventListener("DOMContentLoaded", function() {
       .then(data => {
         // Optionally show a message or handle errors
       });
-      // Move to next card
-      if (currentIndex < userCards.length - 1) {
-        currentIndex++;
-        showCard(currentIndex);
-      } else {
-        card.style.display = 'none';
-      }
+      card.classList.add('swipe-right');
+      setTimeout(() => {
+        card.classList.remove('swipe-right');
+        if (currentIndex < userCards.length - 1) {
+          currentIndex++;
+          showCard(currentIndex);
+        } else {
+          card.style.display = 'none';
+        }
+      }, 500); // Duración de la animación
     });
   });
 
